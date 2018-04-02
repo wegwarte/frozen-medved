@@ -1,0 +1,113 @@
+Core:
+  services:
+    - data_manager
+#    - zmq_listener
+#    - rq_executor
+  pipelines:
+    - ftp
+
+
+services:
+  data_manager:
+    package: lib.data.Manager
+    service: DataManager
+    oneshot: 500
+    data:
+      id: pool
+    sources:
+      - random_ip
+    feeds: 
+      - test_telegram
+  zmq_listener:
+    package: lib.net.Listener
+    service: ZMQListener
+    data:
+      id: pool
+    listen: "0.0.0.0"
+    port: 12321
+  rq_executor:
+    package: lib.exeq.Executor
+    service: RQExecutor
+    data:
+      id: pool
+    redis:
+      host: "127.0.0.1"
+
+
+sources:
+  random_ip:
+    package: lib.plugin.base.lib.IP
+    service: RandomIP
+    data:
+      id: random_ip
+    oneshot: 100
+    delay: 0.5
+
+
+feeds:
+  test_telegram:
+    package: lib.plugin.base.lib.Telegram
+    service: TelegramFeed
+    data:
+      id: pool
+    token: 
+    chats: 
+      - id: good_evening
+        pipelines: [ftp, gopher]
+        filter:
+          clause: any-of
+          equal: 
+            - ftp_list_files_status: success
+            - gopher_collect_status: success
+    delay: 10
+
+
+storage:
+  pool:
+    package: lib.plugin.base.lib.Mongo
+    service: MongoStorage
+    size: 40960
+    url: "127.0.0.1"
+    db: "medved"
+    coll: 'pool'
+  random_ip:
+    package: lib.plugin.base.lib.Mongo
+    service: MongoStorage
+    size: 500
+    url: "127.0.0.1"
+    db: "medved"
+    coll: 'randomipsource'
+
+
+pipelines:
+  ftp:
+    steps:
+      - name: scan
+        package: lib.plugin.iscan.tasks.common
+        service: scan
+        multiple: 200
+        requires: []
+      - name: connect
+        package: lib.plugin.iscan.tasks.ftp
+        service: connect
+        multiple: False
+        requires: [
+          ftp_scan
+        ]
+      - name: list_files
+        package: lib.plugin.iscan.tasks.ftp
+        service: list_files
+        multiple: False
+        requires: [
+          ftp_connect
+        ]
+
+tasks:
+  ftp_scan:
+    ports: [21]
+  ftp_connect:
+    logins: data/ftp/logins.txt
+    passwords: data/ftp/passwords.txt
+    bruteforce: true
+    timeout: 15
+  ftp_list_files:

@@ -1,0 +1,64 @@
+version: '3.3'
+
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.37.0/24
+
+services:
+  core:
+    build:
+      context: ./docker/core
+    depends_on:
+      - redis
+      - mongo
+    ports:
+      - 12321:12321
+    env_file:
+      - docker/env
+    environment:
+      - REDIS_IP=redis
+      - MONGO_IP=mongo
+      - SELENIUM_IP=selenium
+      - CORE_IP=core
+    volumes:
+      - .:/mdvd/
+
+  worker:
+    build:
+      context: ./docker/worker
+    env_file:
+      - docker/env
+    environment:
+      - REDIS_IP=redis
+      - MONGO_IP=mongo
+      - SELENIUM_IP=selenium
+      - CORE_IP=core
+    depends_on:
+      - core
+      - selenium
+    volumes:
+      - .:/mdvd/
+
+  selenium:
+    image: selenium/standalone-chrome:latest
+    volumes:
+      - /dev/shm:/dev/shm
+    environment:
+      - JAVA_OPTS=-Dselenium.LOGGER.level=WARNING
+
+  mongo:
+    image: mongo:latest
+    volumes:
+      - ./docker/lib/mongo:/data/
+    env_file:
+      - docker/env
+
+  redis:
+    image: redis:latest
+    volumes:
+      - ./docker/lib/redis:/data/
+    env_file:
+      - docker/env

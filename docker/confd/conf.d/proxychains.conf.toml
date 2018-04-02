@@ -1,0 +1,7 @@
+[template]
+src = "proxychains.conf.tmpl"
+dest = "/etc/proxychains.conf"
+
+keys = [
+  "/core/ip"
+]

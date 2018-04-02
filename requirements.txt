@@ -1,0 +1,14 @@
+GeoIP
+pytelegrambotapi
+requests
+pillow
+netaddr
+requests
+BeautifulSoup4
+selenium
+pymongo
+urllib3
+zmq
+jsoncomment
+rq
+pyyaml

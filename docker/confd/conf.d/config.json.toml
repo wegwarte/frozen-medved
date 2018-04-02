@@ -1,0 +1,29 @@
+[template]
+src = "config.json.tmpl"
+dest = "/mdvd/config.json"
+
+keys = [
+  "/coop/conn/ip",
+  "/coop/conn/port",
+  "/coop/listen/ip",
+  "/coop/listen/port",
+  "/coop/mode",
+  "/coop/loglevel",
+  "/io/pool/delay",
+  "/io/pool/oneshot",
+  "/io/pool/size",
+  "/io/pool/loglevel",
+  "/io/ds/oneshot",
+  "/io/ds/loglevel",
+  "/io/df/loglevel",
+  "/io/df/telegram/token",
+  "/io/listener/listen",
+  "/io/listener/port",
+  "/io/listener/enabled",
+  "/io/listener/loglevel",
+  "/mongo/ip",
+  "/redis/ip",
+  "/selenium/ip",
+  "/core/ip",
+  "/loglevel"
+]

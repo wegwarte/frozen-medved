@@ -1,0 +1,8 @@
+admin
+ftp
+ftpuser
+ftpadmin
+root
+uploader
+test
+user

@@ -1,0 +1,9 @@
+FROM medved_base:latest
+
+ENV CORE_IP=localhost MONGO_IP=localhost SELENIUM_IP=localhost REDIS_IP=localhost LOGLEVEL=INFO
+
+COPY docker/test.sh /tmp/test.sh
+
+COPY . /mdvd/
+
+RUN /tmp/test.sh

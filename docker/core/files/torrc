@@ -1,0 +1,5 @@
+SocksPort 0.0.0.0:9050
+SocksPolicy accept *
+Log notice syslog
+DataDirectory /var/lib/tor
+RunAsDaemon 1

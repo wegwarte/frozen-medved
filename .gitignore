@@ -1,0 +1,10 @@
+__pycache__
+screens/*.png
+*.log
+*~*
+.idea
+nohup.out
+config.json
+docker/lib/redis/dump.rdb
+docker/lib/mongo/configdb
+docker/lib/mongo/db

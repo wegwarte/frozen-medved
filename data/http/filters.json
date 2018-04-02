@@ -1,0 +1,119 @@
+{
+  "RouterOSLoginPage": {
+    "content": {
+      "title": [
+        "RouterOS",
+        "router"
+      ],
+      "body": [
+        "RouterOS",
+        "mikrotik"
+      ]
+    },
+    "storage": {
+      "max": 150
+    }
+  },
+  "ZyXel": {
+    "content": {
+      "body": [
+        "top.location='/index.html';"
+      ],
+      "server": "micro_httpd"
+    }
+  },
+  "TechnicolorGatewayLogin": {
+    "content": {
+      "title": [
+        "Technicolor",
+        "Gateway",
+        "Login"
+      ],
+      "body": [
+        "Technicolor",
+        "Gateway"
+      ]
+    },
+    "storage": {
+      "max": 100
+    }
+  },
+  "TechnicolorModem": {
+    "content": {
+      "title": [
+        "Módem",
+        "Inicio",
+        "sesión"
+      ],
+      "body": [
+        "Technicolor",
+        "TELMEX"
+      ]
+    },
+    "storage": {
+      "max": 100
+    }
+  },
+  "IIS7": {
+    "content": {
+      "title": [
+        "IIS7"
+      ],
+      "body": [
+        "IIS7",
+        "http://go.microsoft.com/fwlink/",
+        "welcome.png"
+      ]
+    },
+    "storage": {
+      "max": 150
+    }
+  },
+  "NETSurveillanceWEB": {
+    "content": {
+      "title": [
+        "NETSurveillance",
+        "WEB"
+      ],
+      "body": [
+        "NetSuveillanceWebCookie"
+      ]
+    },
+    "storage": {
+      "max": 100
+    }
+  },
+  "TELMEX": {
+    "content": {
+      "title": [],
+      "body": [
+        "ProductName",
+        "Huawei",
+        "TELMEX"
+      ]
+    },
+    "storage": {
+      "max": 100
+    }
+  },
+  "Docsis": {
+    "content": {
+      "title": [],
+      "body": [
+        "showRefresh(\"Docsis_system"
+      ]
+    },
+    "storage": {
+      "max": 100
+    }
+  },
+  "Hikvision": {
+    "content": {
+      "title": [],
+      "body": [
+        "Hikvision"
+      ],
+      "server": "DNVRS-Webs"
+    }
+  }
+}

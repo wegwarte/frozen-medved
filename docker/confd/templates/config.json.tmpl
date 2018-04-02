@@ -1,0 +1,87 @@
+{
+    "stalker": {
+        "HTTP": {
+            "filters": "data/http/filters.json",
+            "loglevel": "{{ getv "/loglevel" }}",
+            "parallel": 70,
+            "ports": [
+                80,
+                81,
+                82,
+                83,
+                84,
+                85,
+                88,
+                8000,
+                8008,
+                8080,
+                8081,
+                8888,
+                9000,
+                9080,
+                9090,
+                9999
+            ],
+            "screenshots": {
+                "selenium": "{{ getv "/selenium/ip" }}",
+                "enabled": true,
+                "height": 768,
+                "load_timeout": 40,
+                "pause": 10,
+                "script_timeout": 60,
+                "width": 1366,
+                "workers": 5
+            },
+            "timeout": 30
+        },
+        "loglevel": "{{ getv "/loglevel" }}",
+        "proxy": "{{ getv "/core/ip" }}"
+    },
+    "io": {
+        "df": {
+            "Remote": {
+                "delay": 20,
+                "preserve": true,
+                "ip": "{{ getv "/coop/conn/ip" }}",
+                "port": {{ getv "/coop/conn/port" }}
+            },
+            "Telegram": {
+                "delay": 20,
+                "preserve": true,
+                "token": "{{ getv "/io/df/telegram/token" }}",
+                "chats": [
+                    {
+                        "id": "xai7poozengee2Aen3poMookohthaZ",
+                        "plugins": ["FTP", "Gopher", "HTTP"],
+                        "enabled": true
+                    },
+                    {
+                        "id": "aiWeipeighah7vufoHa0ieToipooYe",
+                        "plugins": ["FTP"],
+                        "enabled": true
+                    },
+                    {
+                        "id": "ohl7AeGah5uo8cho4nae9Eemaeyae3",
+                        "plugins": ["Gopher"],
+                        "enabled": true
+                    },
+                    {
+                        "id": "gohquooFee3duaNaeNuthushoh8di2",
+                        "plugins": ["HTTP"],
+                        "enabled": true
+                    }
+                ]
+            },
+            "default": ["Telegram"],
+            "loglevel": "{{ getv "/io/df/loglevel" }}"
+        },
+        "loglevel": "{{ getv "/loglevel" }}",
+        "mongo": {
+            "db": "medved",
+            "url": "mongodb://{{ getv "/mongo/ip" }}:27017"
+        },
+        "redis": {
+            "host": "{{ getv "/redis/ip" }}"
+        }
+    }
+}
