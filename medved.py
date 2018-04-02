@@ -7,6 +7,7 @@ from Config import cnf
 from lib import Logger, Loader
 
 class Core:
+  """Core class, contains core services (like listeners, executors, datapool)"""
   def __init__(self):
     self.cnf = cnf.Core
     self.logger = Logger("Core")

@@ -3,6 +3,7 @@ from time import sleep
 from lib import Service, Loader
 
 class DataManager(Service):
+  """Actually, we may load feeds, sources and datapools right in core. Not sure that datamanager is required just to pull sources"""
   def __init__(self, id, root):
     super().__init__(self.__run, id, root)
     self._logger.add_field('service', 'DataManager')

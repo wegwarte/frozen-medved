@@ -3,6 +3,7 @@ from queue import LifoQueue, Empty, Full
 from lib import Loadable, Logger
 
 class Storage(Loadable):
+  """Base class for storages"""
   def __init__(self, id, root):
     super().__init__(id, root)
 

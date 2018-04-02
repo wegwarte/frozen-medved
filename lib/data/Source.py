@@ -1,6 +1,7 @@
 from lib import Service
 
 class Source(Service):
+  """Base class for datasources"""
   def __init__(self, thread, id, root):
     super().__init__(thread, id, root)
     self._logger.add_field('service', 'Feed')

@@ -1,17 +1,21 @@
 # pylint: disable=E1101
-
+# ^
+#  fags
+#      v
+import zmq
 from lib import Service
 from lib.net import ActionManager, Message
 
-import zmq
 
 class Listener(Service):
+  """Base class for listeners"""
   def __init__(self, thread, id, root):
     super().__init__(thread, id, root)
     self._logger.add_field('service', 'Listener')
     self._logger.add_field('vname', self.__class__.__name__)
 
 class ZMQListener(Listener):
+  """ZMQ (Zero MQ) listener - uses my own shitty legacy proto"""
   def __init__(self, id, root):
     super().__init__(self.__run, id, root)
   

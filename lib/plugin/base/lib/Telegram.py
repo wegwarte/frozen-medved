@@ -6,6 +6,8 @@ from time import sleep
 
 
 class TelegramFeed(Feed):
+  """Send data to Telegram chat"""
+  # it doesn't work, though
   def __init__(self, id, root):
     super().__init__(self.__run, id, root)
 
@@ -16,6 +18,9 @@ class TelegramFeed(Feed):
           chat_id = chat.id
           sleep(self.lcnf.delay)
           continue
+          # plugins -> pipelines
+          # it is in progress
+          #TODO
           msg = Manager.get_plugin(plugin).Plugin.TelegramMessage(host)
           msg.run()
           if msg.data['txt']:

@@ -6,6 +6,7 @@ import importlib
 import sys, os
 
 class Logger(logging.Logger):
+  """Logger. standard logging logger with some shitcode on the top"""
   def __init__(self, name):
     self._lf_start = '[%(asctime)s][%(levelname)-7s][%(name)-10s]'
     self._lf_end   = ' %(message)s'
@@ -71,6 +72,7 @@ class Logger(logging.Logger):
 
 
 class Loadable:
+  """parent for loadable from configuration"""
   def __init__(self, id, root=config):
     self.cnf = config
     self.lcnf = root[id]
@@ -78,6 +80,7 @@ class Loadable:
 
 
 class Loader:
+  """Loads classes by configuration"""
   def __init__(self, path):
     self._path = path
     self._name = path.split('.')[-1]

@@ -1,5 +1,7 @@
 # pylint: disable=E1101
-
+# ^
+#  fags
+#      v
 import zmq
 import threading
 
@@ -7,7 +9,11 @@ from Config import cnf
 from lib.net import Message
 from lib import Logger
 
+"""This should be reworked to loadable format. Protos may be different, just like listeners"""
+
+
 class Remote:
+  """Used to run remote Actions.. meh"""
   def __init__(self, ip, port):
     self._send_lock = threading.Lock()
     self._ip = ip

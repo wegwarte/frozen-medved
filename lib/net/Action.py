@@ -1,4 +1,7 @@
 class Action:
+  """Base class for remote actions"""
+  #this part should be removed, I think
+  #dunno
   def __init__(self, datapool):
     self._datapool = datapool
     self.result = None

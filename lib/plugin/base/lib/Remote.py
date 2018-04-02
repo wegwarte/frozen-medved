@@ -3,6 +3,7 @@ from lib.net import Remote
 from time import sleep
 
 class RemoteFeed(Feed):
+  """Puts processed data to remote medved"""
   def __init__(self, id, root):
     super().__init__(self.__run, id, root)
 
@@ -21,6 +22,7 @@ class RemoteFeed(Feed):
         self._logger.warn(e)
 
 class RemoteSource(Source):
+  """Takes data from remote medved"""
   def __init__(self, id, root):
     super().__init__(self.__run, id, root)
 

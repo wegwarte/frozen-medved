@@ -3,6 +3,7 @@ from time import sleep
 from lib.data import Storage
 
 class MongoStorage(Storage):
+  """Mongo storage. Currently the only working correctly."""
   def __init__(self, id, root):
     super().__init__(id, root)
     self._client = MongoClient(self.lcnf.url)

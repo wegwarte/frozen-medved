@@ -7,6 +7,7 @@ from redis import Redis
 
 
 class Executor(Service):
+  """Base class for executors"""
   def __init__(self, thread, id, root):
     super().__init__(thread, id, root)
     self._logger.add_field('service', 'Executor')
@@ -14,12 +15,14 @@ class Executor(Service):
 
 
 class RQExecutor(Executor):
+  """rq (redis queue) executor - lightweight; workers placed on different nodes"""
   def __init__(self, id, root):
     super().__init__(self.__run, id, root)
 
   def __run(self):
     while self._running:
       try:
+        #TODO
         for pn, pipeline in self.cnf.pipelines:
           self._logger.debug("pipeline: %s", pn)
           for step in pipeline.steps:

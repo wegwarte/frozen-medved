@@ -1,6 +1,7 @@
 import pickle
 
 class Message:
+    """Message. Just a pickled dict."""
     def __init__(self, data=None):
         if data is None:
             data = {}

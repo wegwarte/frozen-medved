@@ -4,6 +4,8 @@ from lib import Logger, Loader, Loadable
 from Config import cnf
 
 class Service(Loadable):
+  """Base class for loadale service"""
+  # service consists of running thread and storage attached
   def __init__(self, thread, id, root=cnf):
     super().__init__(id, root)
 
