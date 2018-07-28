@@ -9,7 +9,7 @@ class Service(Loadable):
   def __init__(self, thread, id, root=cnf):
     super().__init__(id, root)
 
-    self._data = Loader.by_id('storage', self.lcnf.data.id)
+    self._data = Loader.by_id('storage', self.lcnf.get("data").get("id"))
 
     self._stop_timeout = 10
     self._running = False

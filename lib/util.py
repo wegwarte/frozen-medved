@@ -15,7 +15,7 @@ class Logger(logging.Logger):
     self._update()
 
   def get_level(self, name):
-    return logging.DEBUG
+    return logging.getLevelName(config.get("logging").get(name, "DEBUG"))
 
   def add_field(self, name, default, size=3):
     if not name in self._lf_extra:
@@ -84,27 +84,17 @@ class Loader:
   def __init__(self, path):
     self._path = path
     self._name = path.split('.')[-1]
-    self._dir = ".".join(path.split('.')[:-1]) # shiiiet
+    # TODO remove # self._dir = ".".join(path.split('.')[:-1]) 
     self._logger = Logger('Loader')
     self._logger.add_field('path', self._path)
 
   def get(self, name):
-    sys.path.append( os.path.join( os.path.dirname( __file__ ), '..' ))
+    sys.path.append(os.path.join( os.path.dirname( __file__ ), '..' ))
     self._logger.debug('load %s', name)
     result = importlib.import_module(self._path)
     return getattr(result, name)
   
   @classmethod
   def by_id(cls, section, id):
-    l = cls(config[section][id].package)
-    return l.get(config[section][id].service)(id=id, root=config[section])
-
-"""
-section:
-  package: lib.package
-  service: Service
-  id:
-    qwer: asdf
-    tyui: ghjk
-"""
-
+    l = cls(config[section][id].get('package'))
+    return l.get(config[section][id].get('service'))(id=id, root=config[section])

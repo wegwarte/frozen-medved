@@ -31,7 +31,7 @@ class IPRange(IPSource):
 
   def load_ip_range(self):
     ip_range = []
-    with open(self.lcnf.path, "r") as text:
+    with open(self.lcnf.get('path'), "r") as text:
       for line in text:
         try:
           diap = line.split('-')
@@ -42,13 +42,14 @@ class IPRange(IPSource):
         except Exception as e:
           raise Exception("Error while adding range {}: {}".format(line, e))
     self._iprange = ip_range
+
   def __run(self):
     npos = 0
     apos = 0
     while self._running:
       try:
-        for _ in itertools.repeat(None, self.lcnf.oneshot):
-          if self.lcnf.ordered:
+        for _ in itertools.repeat(None, self.lcnf.get('oneshot', 100)):
+          if self.lcnf.get('ordered', True):
             # put currently selected element
             self._data.put(str(self._iprange[npos][apos]))
             # rotate next element through networks and addresses
@@ -59,13 +60,13 @@ class IPRange(IPSource):
               if npos + 1 < len(self._iprange):
                 npos += 1
               else:
-                if self.lcnf.repeat:
+                if self.lcnf.get('repeat', True):
                   npos = 0
                 else:
                   self.stop()
           else:
             self._data.put(str(random.choice(random.choice(self._iprange))))
-        sleep(self.lcnf.delay)
+        sleep(self.lcnf.get('delay', 0.5))
       except Exception as e:
         self._logger.warn(e)
 
@@ -78,10 +79,10 @@ class RandomIP(IPSource):
     while self._running:
       try:
         items = []
-        for _ in itertools.repeat(None, self.lcnf.oneshot):
+        for _ in itertools.repeat(None, self.lcnf.get("oneshot", 100)):
           randomip = socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
           items.append(self.item(str(randomip)))
         self._data.put(items)
-        sleep(self.lcnf.delay)
+        sleep(self.lcnf.get("delay", 0.5))
       except Exception as e:
         self._logger.warn(e)

@@ -9,13 +9,14 @@ from lib import Logger, Loader
 class Core:
   """Core class, contains core services (like listeners, executors, datapool)"""
   def __init__(self):
-    self.cnf = cnf.Core
+    self.cnf = cnf.get("core")
     self.logger = Logger("Core")
     self.logger.debug("Loading services")
 
     self._services = []
-    for service in self.cnf.services:
-      service = Loader.by_id('services', service)
+
+    for service_name in self.cnf.get("services"):
+      service = Loader.by_id('services', service_name)
       self._services.append(service)
 
   def start(self):

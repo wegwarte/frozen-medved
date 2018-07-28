@@ -9,10 +9,10 @@ class DataManager(Service):
     self._logger.add_field('service', 'DataManager')
 
     self.sources = {}
-    for s in self.lcnf.sources:
+    for s in self.lcnf.get("sources"):
       self.attach_source(s)
     self.feeds = {}
-    for f in self.lcnf.feeds:
+    for f in self.lcnf.get("feeds"):
       self.attach_feed(f)
 
   def _pre_start(self):
@@ -46,12 +46,13 @@ class DataManager(Service):
     return self.feeds.get(name)
 
   def __run(self):
+    oneshot = self.lcnf.get("oneshot", 500)
     while self._running:
-      if self._data.count() < self.lcnf.oneshot:
-        while self._running and (self._data.count() + self.lcnf.oneshot < self._data.size()):
+      if self._data.count() < oneshot:
+        while self._running and (self._data.count() + oneshot < self._data.size()):
           self._logger.debug("fill %s OF %s", self._data.count(), self._data.size())
           for _,source in self.sources.items():
-            items = source.next(count=self.lcnf.oneshot)
+            items = source.next(count=oneshot)
             if items:
               self._data.put(items)
           sleep(1)

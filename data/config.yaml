@@ -1,8 +1,11 @@
-Core:
+---
+dsl_version: 1
+
+core:
   services:
-    - data_manager
-#    - zmq_listener
-#    - rq_executor
+  - data_manager
+#  - zmq_listener
+  - rq_executor
   pipelines:
     - ftp
 
@@ -11,13 +14,12 @@ services:
   data_manager:
     package: lib.data.Manager
     service: DataManager
-    oneshot: 500
     data:
       id: pool
     sources:
-      - random_ip
+    - random_ip
     feeds: 
-      - test_telegram
+    - test_telegram
   zmq_listener:
     package: lib.net.Listener
     service: ZMQListener
@@ -40,8 +42,6 @@ sources:
     service: RandomIP
     data:
       id: random_ip
-    oneshot: 100
-    delay: 0.5
 
 
 feeds:
@@ -57,9 +57,8 @@ feeds:
         filter:
           clause: any-of
           equal: 
-            - ftp_list_files_status: success
-            - gopher_collect_status: success
-    delay: 10
+          - ftp_list_files_status: success
+          - gopher_collect_status: success
 
 
 storage:
@@ -67,14 +66,12 @@ storage:
     package: lib.plugin.base.lib.Mongo
     service: MongoStorage
     size: 40960
-    url: "127.0.0.1"
     db: "medved"
     coll: 'pool'
   random_ip:
     package: lib.plugin.base.lib.Mongo
     service: MongoStorage
     size: 500
-    url: "127.0.0.1"
     db: "medved"
     coll: 'randomipsource'
 
@@ -82,32 +79,34 @@ storage:
 pipelines:
   ftp:
     steps:
-      - name: scan
-        package: lib.plugin.iscan.tasks.common
-        service: scan
-        multiple: 200
-        requires: []
-      - name: connect
-        package: lib.plugin.iscan.tasks.ftp
-        service: connect
-        multiple: False
-        requires: [
-          ftp_scan
-        ]
-      - name: list_files
-        package: lib.plugin.iscan.tasks.ftp
-        service: list_files
-        multiple: False
-        requires: [
-          ftp_connect
-        ]
+    - name: scan
+      package: lib.plugin.iscan.tasks.common
+      service: scan
+      multiple: 10
+      requires: []
+    - name: connect
+      package: lib.plugin.iscan.tasks.ftp
+      service: connect
+      multiple: False
+      requires:
+      - ftp_scan
+    - name: list_files
+      package: lib.plugin.iscan.tasks.ftp
+      service: list_files
+      multiple: False
+      requires:
+      - ftp_connect
 
 tasks:
   ftp_scan:
-    ports: [21]
+    ports:
+    - 21
   ftp_connect:
     logins: data/ftp/logins.txt
     passwords: data/ftp/passwords.txt
     bruteforce: true
     timeout: 15
   ftp_list_files:
+
+logging: 
+  Storage: INFO

@@ -23,7 +23,7 @@ class ZMQListener(Listener):
     self._running = True
     self._z_ctx = zmq.Context()
     self._z_sck = self._z_ctx.socket(zmq.REP)
-    self._z_sck.bind("tcp://%s:%s" % (self.lcnf.listen, self.lcnf.port))
+    self._z_sck.bind("tcp://%s:%s" % (self.lcnf.get('listen', '127.0.0.1'), self.lcnf.get('port', 12321)))
 
   def _post_stop(self):
     self._z_ctx.destroy()

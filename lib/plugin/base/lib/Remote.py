@@ -10,14 +10,14 @@ class RemoteFeed(Feed):
   def __run(self):
     while self._running:
       try:
-        remote = Remote(self.lcnf.ip, self.lcnf.port)
+        remote = Remote(self.lcnf.get('ip'), self.lcnf.get('port'))
         remote.connect()
         items = self.get(5)
         if items:
           self._logger.info("Sending %s items" % len(items))
           remote.run('data.put', {'items': items})
 
-        sleep(self.lcnf.delay)
+        sleep(self.lcnf.get('delay', 10))
       except Exception as e:
         self._logger.warn(e)
 
@@ -27,11 +27,11 @@ class RemoteSource(Source):
     super().__init__(self.__run, id, root)
 
   def __run(self):
-    remote = Remote(self.lcnf.ip, self.lcnf.port)
+    remote = Remote(self.lcnf.get('ip'), self.lcnf.get('port'))
     remote.connect()
     while self._running:
-      self._logger.debug("Requesting from %s", self.lcnf.ip)
-      rep = remote.run('data.get', {'count': self.lcnf.oneshot})
+      self._logger.debug("Requesting from %s", self.lcnf.get('ip'))
+      rep = remote.run('data.get', {'count': self.lcnf.get('oneshot', 100)})
       if rep.get('status'):
         targets = rep.get("data")
       else:
@@ -39,4 +39,4 @@ class RemoteSource(Source):
       self._logger.debug("Got %s items", len(targets))      
       for t in targets:
         self._data.put(t)
-      sleep(self.lcnf.delay)
+      sleep(self.lcnf.get('delay', 10))

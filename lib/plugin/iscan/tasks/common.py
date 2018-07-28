@@ -30,11 +30,13 @@ class MasScan:
     result = parser.loads(out)
     return result
 
-def scan(items, taskid):
-  gi = GeoIP.open(cnf.geoip_dat, GeoIP.GEOIP_INDEX_CACHE | GeoIP.GEOIP_CHECK_CACHE)
+def scan(items):
+  gi = GeoIP.open(cnf.get("geoip_dat", "/usr/share/GeoIP/GeoIP.dat"), GeoIP.GEOIP_INDEX_CACHE | GeoIP.GEOIP_CHECK_CACHE)
   logger.debug("Starting scan")
   ms = MasScan()
-  hosts = ms.scan(ip_list=[i['data']['ip'] for i in items], port_list=cnf.Tasks[taskid].ports)
+  hosts = ms.scan(ip_list=[i['data']['ip'] for i in items], 
+                  port_list=cnf.get("tasks").get('ftp_scan').get("ports"))
+  logger.debug(hosts)
   for h in hosts:
     for port in h['ports']:
       host = {
