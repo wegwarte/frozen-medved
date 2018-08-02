@@ -22,14 +22,13 @@ class RQExecutor(Executor):
   def __run(self):
     redis_conn = Redis(host=self.lcnf.get('redis').get('host'))
     jobs = []
-    
+
     while self._running:
-      sleep(self.lcnf.get('delay', 0.2))
+      sleep(self.lcnf.get('delay', 0.5))
       try:
         for pn, pipeline in self.cnf.get("pipelines").items():
           if pn not in self.cnf.get('core').get('pipelines'):
             continue
-          source = Loader.by_id('storage', pipeline.get('source'))
           for step in pipeline['steps']:
             q = Queue(step.get('priority', 'normal'), connection=redis_conn)
             for job_id in jobs:
@@ -49,12 +48,15 @@ class RQExecutor(Executor):
             items = self._data.get(block=False, count=count, filter=filter)
             # obtain everything else from source
             if len(items) < count:
+              source = Loader.by_id('storage', pipeline.get('source'))
               new_items = source.get(block=False, count=(count - len(items)), filter=filter)
               items.extend(new_items)
               source.remove(new_items)
 
             if items:
-              self._data.update(items, {'$set': {'steps.%s' % step['task']: None}})
+              for i in items:
+                i['steps'][step['task']] = None
+              self._data.update(items)
               job = q.enqueue("lib.exeq.Task.run", step['task'], items)
               self._logger.info("%s|%s|%s|%s", job.id, step.get('priority', 'normal'), step['task'], len(items))
               jobs.append(job.id)

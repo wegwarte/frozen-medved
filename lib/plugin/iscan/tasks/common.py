@@ -38,7 +38,7 @@ class MasScanTask(Task):
 
     gi = GeoIP.open(cnf.get("geoip_dat", "/usr/share/GeoIP/GeoIPCity.dat"), GeoIP.GEOIP_INDEX_CACHE | GeoIP.GEOIP_CHECK_CACHE)
     ip_list = [i['data']['ip'] for i in items]
-    port_list = cnf.get("tasks").get(self._id).get("ports")
+    port_list = self.lcnf.get("ports")
     
     self._logger.debug("Starting scan, ip_list=%s, port_list=%s", ip_list, port_list)
     

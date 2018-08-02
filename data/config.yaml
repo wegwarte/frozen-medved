@@ -25,11 +25,15 @@ services:
     package: lib.plugin.base.lib.Telegram
     service: TelegramFeed
     storage: pool
-    token: "358947514:"
+    token: "358947212354:"
     chats:
     - id: aiWeipeighah7vufoHa0ieToipooYe
       if:
         steps.ftp_apply_tpl: true
+        data.filter: false
+    - id: ohl7AeGah5uo8cho4nae9Eemaeyae3
+      if:
+        steps.gopher_apply_tpl: true
         data.filter: false
 
 storage:
