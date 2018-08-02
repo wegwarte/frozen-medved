@@ -17,41 +17,37 @@ class MongoStorage(Storage):
     return self._coll.count()
   
   def _get(self, block, filter):
-    # TODO cleanup dat BS
     if filter is None:
       filter = {}
-    ne_tags = {}
-    e_tags = {}
-    if filter.get('not_exist'):
-      tags = []
-      for ne in filter.get('not_exist'):
-        tags.append(ne)
-      ne_tags = {'tags': {'$not': {'$all': tags}}}
-      del filter['not_exist']
-    if filter.get('exist'):
-      tags = []
-      for e in filter.get('exist'):
-        tags.append(e)
-      e_tags = {'tags': {'$all': tags}}
-      del filter['exist']
-    filter = {'$and': [ne_tags, e_tags]}
+    else:
+      self._logger.debug(filter)
     item = self._coll.find_one_and_delete(filter=filter)
     if block:
       while not item:
         item = self._coll.find_one_and_delete(filter=filter)
         sleep(1)
-    
-    return item
+  
+  def _get_many(self, count, block, filter):
+    if filter is None:
+      filter = {}
+    else:
+      self._logger.debug(filter)
+    items = self._coll.find(filter=filter, limit=count)
+    result = []
+    for i in items:
+      self._coll.delete_one({'_id': i['_id']})
+      result.append(i)
+    return result
   
   def _put(self, item, block):
-    if block:
+    if block and self.size() is not 0:
       while self.count() + 1 > self.size():
         self._logger.debug('Collection full: %s of %s', self.count(), self.size())
         sleep(1)
     self._coll.insert_one(item)
   
   def _put_many(self, items, block):
-    if block:
+    if block and self.size() is not 0:
       while self.count() + len(items) > self.size():
         self._logger.debug('Collection full: %s of %s', self.count(), self.size())
         sleep(1)

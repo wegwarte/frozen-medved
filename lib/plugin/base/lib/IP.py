@@ -1,6 +1,8 @@
 from lib.data import Source
 from lib import Loader
 
+import copy
+
 from time import sleep
 
 import os
@@ -14,13 +16,12 @@ class IPSource(Source):
   def __init__(self, thread, id, root):
     super().__init__(thread, id, root)
   
-  def item(self, val = None):
-    return {
+    self._item.update ({
       'source': self._id,
       'data': {
-        'ip': val
+        'ip': None
       }
-    }
+    })
 
 
 class IPRange(IPSource):
@@ -80,8 +81,10 @@ class RandomIP(IPSource):
       try:
         items = []
         for _ in itertools.repeat(None, self.lcnf.get("oneshot", 100)):
+          item = copy.deepcopy(self._item)
           randomip = socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
-          items.append(self.item(str(randomip)))
+          item['data']['ip'] = str(randomip)
+          items.append(item)
         self._data.put(items)
         sleep(self.lcnf.get("delay", 0.5))
       except Exception as e:

@@ -7,8 +7,7 @@ from lib import Logger
 import GeoIP
 from Config import cnf
 
-logger = Logger("common")
-
+from lib.exeq import Task
 
 class MasScan:
   def __init__(self, bin_path='/usr/bin/masscan', opts="-sS -Pn -n --wait 0 --max-rate 5000"):
@@ -30,29 +29,47 @@ class MasScan:
     result = parser.loads(out)
     return result
 
-def scan(items):
-  gi = GeoIP.open(cnf.get("geoip_dat", "/usr/share/GeoIP/GeoIP.dat"), GeoIP.GEOIP_INDEX_CACHE | GeoIP.GEOIP_CHECK_CACHE)
-  logger.debug("Starting scan")
-  ms = MasScan()
-  hosts = ms.scan(ip_list=[i['data']['ip'] for i in items], 
-                  port_list=cnf.get("tasks").get('ftp_scan').get("ports"))
-  logger.debug(hosts)
-  for h in hosts:
-    for port in h['ports']:
-      host = {
-        'ip': h['ip'],
-        'port': port['port'],
-        'data': {
+class MasScanTask(Task):
+  def __init__(self, id, root):
+    super().__init__(id, root)
+
+  def _run(self, items):
+    result = []
+
+    gi = GeoIP.open(cnf.get("geoip_dat", "/usr/share/GeoIP/GeoIPCity.dat"), GeoIP.GEOIP_INDEX_CACHE | GeoIP.GEOIP_CHECK_CACHE)
+    ip_list = [i['data']['ip'] for i in items]
+    port_list = cnf.get("tasks").get(self._id).get("ports")
+    
+    self._logger.debug("Starting scan, ip_list=%s, port_list=%s", ip_list, port_list)
+    
+    ms = MasScan()
+    hosts = ms.scan(ip_list=ip_list, port_list=port_list)
+    
+    self._logger.debug(hosts)
+    hosts = {h['ip']: h for h in hosts}
+    for item in items:
+      data = {}
+      result = False
+      if hosts.get(item['data']['ip']):
+        data = {
+          'ports': [p['port'] for p in hosts[item['data']['ip']]['ports']],
           'geo': {
             'country': None,
             'city': None
           }
         }
-      }
-    geodata = gi.record_by_name(host['ip'])
-    if geodata:
-      if 'country_code3' in geodata and geodata['country_code3']:
-        host['data']['geo']['country'] = geodata['country_code3']
-      if 'city' in geodata and geodata['city']:
-        host['data']['geo']['city'] = geodata['city']
-    logger.debug("Found %s:%s", host['ip'], host['port'])
+        result = True
+        geodata = gi.record_by_name(item['data']['ip'])
+        if geodata:
+          if 'country_code3' in geodata and geodata['country_code3']:
+            data['geo']['country'] = geodata['country_code3']
+          if 'city' in geodata and geodata['city']:
+            data['geo']['city'] = geodata['city']
+      self._logger.debug(data)
+      item['data'].update(data)
+      item['steps'][self._id] = result
+      if result:
+        self._logger.debug("Found %s with open %s", item['data']['ip'], item['data']['ports'])
+
+    self._logger.debug(items)
+    return items

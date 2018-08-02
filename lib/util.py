@@ -74,8 +74,8 @@ class Logger(logging.Logger):
 class Loadable:
   """parent for loadable from configuration"""
   def __init__(self, id, root=config):
-    self.cnf = config
-    self.lcnf = root[id]
+    self.cnf = config # global config
+    self.lcnf = root[id] # local config 
     self._id = id
 
 

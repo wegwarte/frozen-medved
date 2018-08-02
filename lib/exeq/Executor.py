@@ -22,33 +22,38 @@ class RQExecutor(Executor):
     super().__init__(self.__run, id, root)
 
   def __run(self):
+    redis_conn = Redis(host=self.lcnf.get('redis').get('host'))
+    
+    jobs = []
     while self._running:
+      sleep(self.lcnf.get('delay', 0.07))
       try:
-        redis_conn = Redis(host=self.lcnf.get('redis').get('host'))
-        q = Queue('worker', connection=redis_conn)
-        if q.count + 1 > self.lcnf.get('size', 100):
-          sleep(self.lcnf.get('delay', 2))
-          continue
+        for job in [j for j in jobs if j.result is not None]:
+          self._logger.debug('Publishing finished job result')
+          self._data.put(job.result)
+          job.cleanup()
+          jobs.remove(job)
         for pn, pipeline in self.cnf.get("pipelines").items():
           self._logger.debug("pipeline: %s", pn)
+          source = Loader.by_id('storage', pipeline.get('source'))
           for step in pipeline['steps']:
-            self._logger.debug("step: %s", step['name'])
-            filter = {
-              "not_exist": [
-                pn + '_' + step['name']
-              ],
-              "exist": [
-                [tag for tag in step.get("requires")]
-              ]
-            }
-            items = []
-            multiple = step.get('multiple', False)
-            if multiple != False:
-              items = self._data.get(block=False, count=multiple, filter=filter)
-            else:
-              items = self._data.get(block=False, filter=filter)
+            self._logger.debug("task name: %s", step['task'])
+            q = Queue(step.get('priority', 'normal'), connection=redis_conn)
+            if q.count + 1 > self.lcnf.get('qsize', 100):
+              continue
+            filter = {"steps.%s" % step['task']: {'$exists': False}}
+            filter.update({key: value for key, value in step.get("if", {}).items()})
+            count = step.get('multiple') if step.get('multiple', False) else 1
+            # get as much as possible from own pool
+            items = self._data.get(block=False, count=count, filter=filter)
+            # obtain everything else from source
+            if len(items) < count:
+              items.extend(source.get(block=False, count=(count - len(items)), filter=filter))
             if items:
-              self._logger.debug("enqueueing %s.%s with %s", step['package'], step['service'], items)
-              q.enqueue("%s.%s" % (step['package'], step['service']), items)
+              for i in items:
+                i['steps'][step['task']] = None
+              self._logger.debug("enqueueing task '%s' (count: %s)", step['task'], len(items))
+              job = q.enqueue("lib.exeq.Task.run", step['task'], items)
+              jobs.append(job)
       except Exception as e:
-        self._logger.error(e)
+        self._logger.error("Error in executor main thread: %s", e)

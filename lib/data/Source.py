@@ -7,11 +7,10 @@ class Source(Service):
     self._logger.add_field('service', 'Feed')
     self._logger.add_field('vname', self.__class__.__name__)
   
-  def item(self, val = None):
-    return {
+    self._item = {
       'source': self._id,
       'steps': {},
-      'data': val
+      'data': {}
     }
 
   def next(self, count=10, block=False):

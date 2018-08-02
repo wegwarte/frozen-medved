@@ -3,110 +3,70 @@ dsl_version: 1
 
 core:
   services:
-  - data_manager
-#  - zmq_listener
+  - random_ip
   - rq_executor
   pipelines:
-    - ftp
-
+  - ftp
 
 services:
-  data_manager:
-    package: lib.data.Manager
-    service: DataManager
-    data:
-      id: pool
-    sources:
-    - random_ip
-    feeds: 
-    - test_telegram
-  zmq_listener:
-    package: lib.net.Listener
-    service: ZMQListener
-    data:
-      id: pool
-    listen: "0.0.0.0"
-    port: 12321
   rq_executor:
     package: lib.exeq.Executor
     service: RQExecutor
-    data:
-      id: pool
+    storage: pool
     redis:
       host: "127.0.0.1"
-
-
-sources:
   random_ip:
     package: lib.plugin.base.lib.IP
     service: RandomIP
-    data:
-      id: random_ip
-
-
-feeds:
-  test_telegram:
-    package: lib.plugin.base.lib.Telegram
-    service: TelegramFeed
-    data:
-      id: pool
-    token: 
-    chats: 
-      - id: good_evening
-        pipelines: [ftp, gopher]
-        filter:
-          clause: any-of
-          equal: 
-          - ftp_list_files_status: success
-          - gopher_collect_status: success
-
+    storage: ftp_source
 
 storage:
   pool:
     package: lib.plugin.base.lib.Mongo
     service: MongoStorage
-    size: 40960
+    size: 0
     db: "medved"
     coll: 'pool'
-  random_ip:
+  ftp_source:
     package: lib.plugin.base.lib.Mongo
     service: MongoStorage
     size: 500
     db: "medved"
-    coll: 'randomipsource'
+    coll: 'ftp_source'
 
 
 pipelines:
   ftp:
+    source: ftp_source
     steps:
-    - name: scan
-      package: lib.plugin.iscan.tasks.common
-      service: scan
-      multiple: 10
-      requires: []
-    - name: connect
-      package: lib.plugin.iscan.tasks.ftp
-      service: connect
-      multiple: False
-      requires:
-      - ftp_scan
-    - name: list_files
-      package: lib.plugin.iscan.tasks.ftp
-      service: list_files
-      multiple: False
-      requires:
-      - ftp_connect
+    - task: ftp_scan
+      priority: low
+      multiple: 100
+    - task: ftp_connect
+      priority: normal
+      if:
+        steps.ftp_scan: true
+    - task: ftp_list_files
+      priority: high
+      if:
+        steps.ftp_connect: true
 
 tasks:
   ftp_scan:
+    package: lib.plugin.iscan.tasks.common
+    service: MasScanTask
     ports:
     - 21
   ftp_connect:
+    package: lib.plugin.iscan.tasks.ftp
+    service: FTPConnectTask
     logins: data/ftp/logins.txt
     passwords: data/ftp/passwords.txt
     bruteforce: true
     timeout: 15
   ftp_list_files:
+    package: lib.plugin.iscan.tasks.ftp
+    service: FTPListFilesTask
 
 logging: 
   Storage: INFO

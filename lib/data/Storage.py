@@ -7,7 +7,7 @@ class Storage(Loadable):
   def __init__(self, id, root):
     super().__init__(id, root)
 
-    self._size = self.lcnf.get("size")
+    self._size = self.lcnf.get("size", 0)
     self._logger = Logger("Storage")
     self._logger.add_field('vname', self.__class__.__name__)
   
