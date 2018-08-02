@@ -70,6 +70,4 @@ class MasScanTask(Task):
       item['steps'][self._id] = result
       if result:
         self._logger.debug("Found %s with open %s", item['data']['ip'], item['data']['ports'])
-
-    self._logger.debug(items)
     return items

@@ -96,5 +96,7 @@ class Loader:
   
   @classmethod
   def by_id(cls, section, id):
-    l = cls(config[section][id].get('package'))
-    return l.get(config[section][id].get('service'))(id=id, root=config[section])
+    # prepares Loader for certain package
+    l = cls(config.get(section).get(id).get('package'))
+    # loads class from this package and returns instantiated object of this class
+    return l.get(config.get(section).get(id).get('service'))(id=id, root=config.get(section))

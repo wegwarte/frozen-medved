@@ -5,20 +5,32 @@ core:
   services:
   - random_ip
   - rq_executor
+  - tg_feed
   pipelines:
   - ftp
+  - gopher
 
 services:
+  random_ip:
+    package: lib.plugin.base.lib.IP
+    service: RandomIP
+    storage: ip_source
   rq_executor:
     package: lib.exeq.Executor
     service: RQExecutor
     storage: pool
     redis:
       host: "127.0.0.1"
-  random_ip:
-    package: lib.plugin.base.lib.IP
-    service: RandomIP
-    storage: ftp_source
+  tg_feed:
+    package: lib.plugin.base.lib.Telegram
+    service: TelegramFeed
+    storage: pool
+    token: "358947514:"
+    chats:
+    - id: aiWeipeighah7vufoHa0ieToipooYe
+      if:
+        steps.ftp_apply_tpl: true
+        data.filter: false
 
 storage:
   pool:
@@ -27,21 +39,21 @@ storage:
     size: 0
     db: "medved"
     coll: 'pool'
-  ftp_source:
+  ip_source:
     package: lib.plugin.base.lib.Mongo
     service: MongoStorage
-    size: 500
+    size: 800
     db: "medved"
-    coll: 'ftp_source'
+    coll: 'ip_source'
 
 
 pipelines:
   ftp:
-    source: ftp_source
+    source: ip_source
     steps:
     - task: ftp_scan
       priority: low
-      multiple: 100
+      parallel: 100
     - task: ftp_connect
       priority: normal
       if:
@@ -50,14 +62,74 @@ pipelines:
       priority: high
       if:
         steps.ftp_connect: true
+    - task: ftp_apply_tpl
+      priority: high
+      if:
+        steps.ftp_list_files: true
+  gopher:
+    source: ip_source
+    steps:
+    - task: gopher_scan
+      priority: normal
+      parallel: 100
+    - task: gopher_find
+      priority: high
+      if:
+        steps.gopher_scan: true
+    - task: gopher_apply_tpl
+      priority: high
+      if:
+        steps.gopher_find: true
+    
+  http:
+    source: ip_source
+    steps:
+    - task: http_scan
+      priority: low
+      parallel: 25
 
 tasks:
+  gopher_scan:
+    package: lib.plugin.iscan.tasks.common
+    service: MasScanTask
+    ports:
+    - 70
+  gopher_find:
+    package: lib.plugin.iscan.tasks.gopher
+    service: GopherFindTask
+  gopher_apply_tpl:
+    package: lib.plugin.base.tasks.text
+    service: Jinja2TemplateTask
+    path: lib/plugin/iscan/templates/gopher.tpl
+
+  vnc_scan:
+    package: lib.plugin.iscan.tasks.common
+    service: MasScanTask
+    ports:
+    - 5900
+    - 5901
+  vnc_connect:
+    package: lib.plugin.iscan.tasks.vnc
+    service: VNCConnectTask
+    ports:
+    - 5900
+    - 5901
+
+  http_scan:
+    package: lib.plugin.iscan.tasks.common
+    service: MasScanTask
+    ports:
+    - 80
+    - 81
+    - 8080
+    - 8081
+
   ftp_scan:
     package: lib.plugin.iscan.tasks.common
     service: MasScanTask
     ports:
     - 21
-  ftp_connect:
+  ftp_connect: 
     package: lib.plugin.iscan.tasks.ftp
     service: FTPConnectTask
     logins: data/ftp/logins.txt
@@ -67,6 +139,12 @@ tasks:
   ftp_list_files:
     package: lib.plugin.iscan.tasks.ftp
     service: FTPListFilesTask
+    filter: true
+  ftp_apply_tpl:
+    package: lib.plugin.base.tasks.text
+    service: Jinja2TemplateTask
+    path: lib/plugin/iscan/templates/ftp.tpl
 
 logging: 
-  Storage: INFO
+  Storage: DEBUG
+  Loader: DEBUG

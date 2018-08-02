@@ -80,12 +80,12 @@ class RandomIP(IPSource):
     while self._running:
       try:
         items = []
-        for _ in itertools.repeat(None, self.lcnf.get("oneshot", 100)):
+        for _ in itertools.repeat(None, self.lcnf.get("oneshot", 200)):
           item = copy.deepcopy(self._item)
           randomip = socket.inet_ntoa(struct.pack('>I', random.randint(1, 0xffffffff)))
           item['data']['ip'] = str(randomip)
           items.append(item)
         self._data.put(items)
-        sleep(self.lcnf.get("delay", 0.5))
+        sleep(self.lcnf.get("delay", 0.2))
       except Exception as e:
         self._logger.warn(e)

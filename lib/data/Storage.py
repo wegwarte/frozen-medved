@@ -58,6 +58,21 @@ class Storage(Loadable):
   def find(self):
     self._logger.debug("find")
     return self._find()
+  
+  def _update(self, items, update):
+    pass
+
+  def update(self, items, update=None):
+    if items:
+      items = [i for i in items if i is not None]
+      self._logger.debug("update %s, %s", len(items), update)
+      self._update(items, update)
+
+  def _remove(self, items):
+    pass
+
+  def remove(self, items):
+    self._remove(items)
 
 
 class LiFoStorage(Storage):

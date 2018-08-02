@@ -19,26 +19,22 @@ class MongoStorage(Storage):
   def _get(self, block, filter):
     if filter is None:
       filter = {}
-    else:
-      self._logger.debug(filter)
-    item = self._coll.find_one_and_delete(filter=filter)
+
+    item = self._coll.find_one(filter=filter)
     if block:
       while not item:
-        item = self._coll.find_one_and_delete(filter=filter)
+        item = self._coll.find_one(filter=filter)
         sleep(1)
+    return item
   
-  def _get_many(self, count, block, filter):
+  def _get_many(self, count, block, filter, update=None):
     if filter is None:
       filter = {}
-    else:
-      self._logger.debug(filter)
+    
+    self._logger.debug("%s, %s", filter, update)
     items = self._coll.find(filter=filter, limit=count)
-    result = []
-    for i in items:
-      self._coll.delete_one({'_id': i['_id']})
-      result.append(i)
-    return result
-  
+    return items
+
   def _put(self, item, block):
     if block and self.size() is not 0:
       while self.count() + 1 > self.size():
@@ -57,3 +53,15 @@ class MongoStorage(Storage):
     if filter is None:
       filter = {}
     return self._coll.find(filter)
+
+  def _update(self, items, update):
+    if update:
+      filter = {'_id': {'$in': [item['_id'] for item in items]}}
+      self._logger.debug("%s, %s", filter, update)
+      self._coll.update_many(filter, update, upsert=True)
+    else:
+      for item in items:
+        self._coll.replace_one({'_id': item['_id']}, item, upsert=True)
+  
+  def _remove(self, items):
+    self._coll.delete_many({'_id': {'$in': [item['_id'] for item in items]}})

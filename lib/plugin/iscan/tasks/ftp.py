@@ -81,6 +81,7 @@ class FTPListFilesTask(Task):
     super().__init__(id, root)
 
   def _process(self, item):
+    item['steps'][self._id] = False
     self.ftp = ftplib.FTP(host=item['data']['ip'], 
                           user=item['data']['username'],
                           passwd=item['data']['password'])
@@ -100,6 +101,7 @@ class FTPListFilesTask(Task):
     item['data']['files'] = []
     for fileName in filelist:
       item['data']['files'].append(fileName)
+      item['steps'][self._id] = True
 
   def _filter(self, item):
     item['data']['filter'] = False
@@ -112,6 +114,8 @@ class FTPListFilesTask(Task):
           match += 1
         if match == len(item['data']['files']):
           item['data']['filter'] = "EmptyWithSystemDirs"
+    if item['data']['filter'] == False:
+      item['steps'][self._id] = True
 
   def _run(self, items):
     for item in items:

@@ -1,7 +1,6 @@
 from .Storage import Storage
 from .Source import Source
 from .Feed import Feed
+from .Item import Item
 
-from .Manager import DataManager
-
-__all__ = ['Storage', 'Source', 'DataManager']
+__all__ = ['Storage', 'Source', 'Feed', 'Item']
