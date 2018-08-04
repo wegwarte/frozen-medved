@@ -23,6 +23,7 @@ class GopherFindTask(Task):
     return ''.join(total_data)
 
   def _process(self, item):
+    item['steps'][self._id] = False
     sock = socket.socket()
     sock.settimeout(self.lcnf.get('timeout', 20))
     sock.connect((item['data']['ip'], int(70)))
@@ -46,5 +47,5 @@ class GopherFindTask(Task):
         item['data']['files'].append(node)
 
     if not item['data']['files']:
-      item['steps'][self._id] = False
       raise Exception("Empty server (not Gopher?)")
+    item['steps'][self._id] = True

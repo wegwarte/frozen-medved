@@ -42,7 +42,7 @@ class MasScanTask(Task):
     
     self._logger.debug("Starting scan, ip_list=%s, port_list=%s", ip_list, port_list)
     
-    ms = MasScan()
+    ms = MasScan(bin_path=self.lcnf.get('bin_path', "/usr/bin/masscan"))
     hosts = ms.scan(ip_list=ip_list, port_list=port_list)
     
     self._logger.debug(hosts)

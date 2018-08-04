@@ -94,7 +94,7 @@ class FTPListFilesTask(Task):
 
     try:
       if len(filelist) == 0 or filelist[0] == "total 0":
-        raise self.PipelineError("Empty server")
+        item['data']['filter'] = "Empty server"
     except IndexError:
       pass
 

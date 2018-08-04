@@ -20,12 +20,12 @@ services:
     service: RQExecutor
     storage: pool
     redis:
-      host: "127.0.0.1"
+      host: redis
   tg_feed:
     package: lib.plugin.base.lib.Telegram
     service: TelegramFeed
     storage: pool
-    token: "358947212354:"
+    token: "3"
     chats:
     - id: aiWeipeighah7vufoHa0ieToipooYe
       if:
@@ -40,12 +40,14 @@ storage:
   pool:
     package: lib.plugin.base.lib.Mongo
     service: MongoStorage
+    url: mongo
     size: 0
     db: "medved"
     coll: 'pool'
   ip_source:
     package: lib.plugin.base.lib.Mongo
     service: MongoStorage
+    url: mongo
     size: 800
     db: "medved"
     coll: 'ip_source'
@@ -150,5 +152,5 @@ tasks:
     path: lib/plugin/iscan/templates/ftp.tpl
 
 logging: 
-  Storage: DEBUG
-  Loader: DEBUG
+  Storage: INFO
+  Loader: INFO

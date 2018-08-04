@@ -12,3 +12,4 @@ zmq
 jsoncomment
 rq
 pyyaml
+jinja2

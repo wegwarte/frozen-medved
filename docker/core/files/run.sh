@@ -7,6 +7,7 @@ export REDIS_IP=$(host ${REDIS_IP} | head -n1 | grep -Po "(\d+\.?){4}")
 
 /tmp/confd -onetime -backend env
 
-sudo -u tor tor
+#sudo -u tor tor
 
-cd /mdvd && proxychains -q python3 medved.py
+#cd /mdvd && proxychains -q python3 medved.py
+cd /mdvd && python3 medved.py
