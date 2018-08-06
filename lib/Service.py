@@ -1,3 +1,8 @@
+"""
+Provides Service class
+"""
+
+
 from time import sleep
 from threading import Thread
 from lib import Logger, Loader, Loadable
@@ -21,8 +26,9 @@ class Service(Loadable):
 
   def _init(self):
     pass
-  
+
   def start(self):
+    """Executes pre_start, starts thread and executes post_start"""
     self._logger.debug('pre_start')
     self._pre_start()
 
@@ -38,6 +44,7 @@ class Service(Loadable):
     self._logger.info('start finished')
 
   def stop(self):
+    """Executes pre_stop, stops thread and executes post_stop"""
     self._logger.debug('pre_stop')
     self._pre_stop()
 
@@ -49,18 +56,18 @@ class Service(Loadable):
     self._post_stop()
 
     self._logger.info('stop finished')
-  
+
   def __run(self):
     while self._running:
       self._logger.debug('NOOP')
       sleep(1)
-  
+
   def _pre_stop(self):
     pass
 
   def _post_stop(self):
     pass
-  
+
   def _pre_start(self):
     pass
 

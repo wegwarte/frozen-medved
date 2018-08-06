@@ -5,6 +5,7 @@ core:
   services:
   - random_ip
   - rq_executor
+  - GC
   - tg_feed
   pipelines:
   - ftp
@@ -16,21 +17,28 @@ services:
     service: RandomIP
     storage: ip_source
   rq_executor:
-    package: lib.exeq.Executor
+    package: lib.exec.Executor
     service: RQExecutor
     storage: pool
     redis:
       host: redis
+  GC:
+    package: lib.plugin.base.lib.GC
+    service: GarbageCollector
+    storage: pool
+    delay: 10
+    if:
+      steps.ftp_scan: false
+      steps.gopher_scan: false
   tg_feed:
     package: lib.plugin.base.lib.Telegram
     service: TelegramFeed
     storage: pool
-    token: "3"
+    token: "358947254:"
     chats:
     - id: aiWeipeighah7vufoHa0ieToipooYe
       if:
         steps.ftp_apply_tpl: true
-        data.filter: false
     - id: ohl7AeGah5uo8cho4nae9Eemaeyae3
       if:
         steps.gopher_apply_tpl: true
@@ -65,13 +73,19 @@ pipelines:
       if:
         steps.ftp_scan: true
     - task: ftp_list_files
-      priority: high
+      priority: normal
       if:
         steps.ftp_connect: true
+    - task: ftp_filter_files
+      priority: normal
+      parallel: 100
+      if:
+        steps.ftp_list_files: true
     - task: ftp_apply_tpl
       priority: high
       if:
-        steps.ftp_list_files: true
+        steps.ftp_filter_files: true
+        data.filter: false
   gopher:
     source: ip_source
     steps:
@@ -124,11 +138,15 @@ tasks:
   http_scan:
     package: lib.plugin.iscan.tasks.common
     service: MasScanTask
-    ports:
+    ports: &http_ports
     - 80
     - 81
     - 8080
     - 8081
+  http_find:
+    package: lib.plugin.iscan.tasks.http
+    service: HTTPFindTask
+    
 
   ftp_scan:
     package: lib.plugin.iscan.tasks.common
@@ -138,19 +156,21 @@ tasks:
   ftp_connect: 
     package: lib.plugin.iscan.tasks.ftp
     service: FTPConnectTask
-    logins: data/ftp/logins.txt
+    usernames: data/ftp/usernames.txt
     passwords: data/ftp/passwords.txt
     bruteforce: true
     timeout: 15
   ftp_list_files:
     package: lib.plugin.iscan.tasks.ftp
     service: FTPListFilesTask
-    filter: true
+  ftp_filter_files:
+    package: lib.plugin.iscan.tasks.ftp
+    service: FTPListFilesTask
   ftp_apply_tpl:
     package: lib.plugin.base.tasks.text
     service: Jinja2TemplateTask
     path: lib/plugin/iscan/templates/ftp.tpl
 
 logging: 
-  Storage: INFO
+  Storage: DEBUG
   Loader: INFO

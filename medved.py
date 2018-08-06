@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-# -*- coding: utf-8 -*-
 
 import time
 
@@ -20,22 +19,24 @@ class Core:
       self._services.append(service)
 
   def start(self):
+    """Starts all loaded services"""
     self.logger.info("Starting")
     for service in self._services:
       service.start()
     self.logger.info("Started")
 
   def stop(self):
+    """Stops all loaded services"""
     self.logger.info("Stopping Core")
     for service in self._services:
       service.stop()
     self.logger.info("Stopped")
 
 if __name__ == '__main__':
-  core = Core()
-  core.start()
+  CORE = Core()
+  CORE.start()
   try:
     while True:
       time.sleep(1)
   except KeyboardInterrupt:
-    core.stop()
+    CORE.stop()

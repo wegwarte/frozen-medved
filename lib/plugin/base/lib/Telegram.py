@@ -1,8 +1,7 @@
-from lib.data import Feed, Filter
-
-import telebot
 from time import sleep
+import telebot
 
+from lib.data import Feed
 
 class TelegramFeed(Feed):
   """Send data to Telegram chat"""
@@ -28,5 +27,5 @@ class TelegramFeed(Feed):
               self._logger.debug("@%s: %s", chat_id, i['data']['message'])
               tbot.send_message("@" + chat_id, i['data']['message'])
         sleep(delay)
-      except Exception as e:
-        self._logger.warn(e)
+      except Exception as err:
+        self._logger.warn(err)

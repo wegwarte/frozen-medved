@@ -57,7 +57,7 @@ class RQExecutor(Executor):
               for i in items:
                 i['steps'][step['task']] = None
               self._data.update(items)
-              job = q.enqueue("lib.exeq.Task.run", step['task'], items)
+              job = q.enqueue("lib.exec.Task.run", step['task'], items)
               self._logger.info("%s|%s|%s|%s", job.id, step.get('priority', 'normal'), step['task'], len(items))
               jobs.append(job.id)
       except Exception as e:

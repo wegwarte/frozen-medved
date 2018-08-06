@@ -16,7 +16,12 @@ class Task(Loadable):
     return result
 
   def _run(self, items):
+    for item in items:
+      item['steps'][self._id] = self._process(item)
     return items
+  
+  def _process(self, item):
+    return True
 
 def run(task_name, items):
   result = Loader.by_id('tasks', task_name).run(items)

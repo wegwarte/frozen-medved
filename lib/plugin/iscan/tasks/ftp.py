@@ -1,125 +1,91 @@
-# pylint: disable=E1101
+"""
+Basic tasks for FTP services
+"""
 
 import ftplib
-import netaddr
 
-from lib import Logger
-from Config import cnf
+from lib.exec import Task
 
-from lib.exeq import Task
-
-class FTPConnectTask(Task):
-  def __init__(self, id, root):
-    super().__init__(id, root)
-
+class FTPConnectTask(Task): # pylint: disable=too-few-public-methods
+  """Tries to connect FTP service with various credentials"""
   def _process(self, item):
-    data = {}
-    result = False
-
-    self.ftp = ftplib.FTP(host=item['data']['ip'], timeout=self.lcnf.get('timeout', 30))
+    ftp = ftplib.FTP(host=item['data']['ip'], timeout=self.lcnf.get('timeout', 30))
     try:
       self._logger.debug('Trying anonymous login')
-      self.ftp.login()
-    except ftplib.error_perm:
-      pass
+      ftp.login()
+    except ftplib.error_perm as err:
+      self._logger.debug('Failed (%s)', err)
     else:
-      self._logger.debug('Succeeded with anonymous')
-      data['username'] = 'anonymous'
-      data['password'] = ''
-      result = True
-
-      self._logger.debug(data)
-      item['data'].update(data)
-      item['steps'][self._id] = result
-      return
+      self._logger.info('Succeeded with anonymous')
+      item['data']['username'] = 'anonymous'
+      item['data']['password'] = ''
+      return True
 
     if self.lcnf.get('bruteforce', False):
-      usernames = []
-      passwords = []
+      self._logger.debug('Bruteforce enabled, loading usernames and passwords')
+      usernames = [line.rstrip() for line in open(self.lcnf.get('usernames'), 'r')]
+      passwords = [line.rstrip() for line in open(self.lcnf.get('passwords'), 'r')]
 
-      with open(self.lcnf.get('logins'), 'r') as lfh:
-        for username in lfh:
-          usernames.append(username.rstrip())
-      with open(self.lcnf.get('passwords'), 'r') as pfh:
-        for password in pfh:
-          passwords.append(password.rstrip())
       for username in usernames:
         for password in passwords:
+          self._logger.debug('Checking %s', username + ':' + password)
           try:
-            self.ftp.voidcmd('NOOP')
-          except IOError:
-            self.ftp = ftplib.FTP(host=item['data']['ip'], timeout=self.lcnf.get('timeout', 30))
-          self._logger.debug('Trying %s' % (username + ':' + password))
+            self._logger.debug('Sending NOOP')
+            ftp.voidcmd('NOOP')
+          except IOError as err:
+            self._logger.debug('IOError occured (%s), attempting to open new connection', err)
+            ftp = ftplib.FTP(host=item['data']['ip'], timeout=self.lcnf.get('timeout', 30))
           try:
-            self.ftp.login(username, password)
-          except ftplib.error_perm:
+            self._logger.debug('Trying to log in')
+            ftp.login(username, password)
+          except ftplib.error_perm as err:
+            self._logger.debug('Failed (%s)', err)
             continue
-          except:
-            raise
           else:
-            self._logger.debug('Succeeded with %s' %(username + ':' + password))
-            data['username'] = username
-            data['password'] = password
-            result = True
+            self._logger.info('Succeeded with %s', username + ':' + password)
+            item['data']['username'] = username
+            item['data']['password'] = password
+            return True
+    self._logger.info('Could not connect')
+    return False
 
-
-            self._logger.debug(data)
-            item['data'].update(data)
-            item['steps'][self._id] = result
-            return
-    self._logger.debug(data)
-    item['data'].update(data)
-    item['steps'][self._id] = result
-
-  def _run(self, items):
-    for item in items:
-      self._process(item)
-    return items
-
-class FTPListFilesTask(Task):
-  def __init__(self, id, root):
-    super().__init__(id, root)
-
+class FTPListFilesTask(Task): # pylint: disable=too-few-public-methods
+  """Executes NLST to list files on FTP"""
   def _process(self, item):
-    item['steps'][self._id] = False
-    self.ftp = ftplib.FTP(host=item['data']['ip'], 
-                          user=item['data']['username'],
-                          passwd=item['data']['password'])
-    filelist = self.ftp.nlst()
+    ftp = ftplib.FTP(host=item['data']['ip'], 
+                     user=item['data']['username'],
+                     passwd=item['data']['password'])
+    filelist = ftp.nlst()
     try:
-      self.ftp.quit()
-    except:
-      # that's weird, but we don't care
-      pass
-
-    try:
-      if len(filelist) == 0 or filelist[0] == "total 0":
-        item['data']['filter'] = "Empty server"
-    except IndexError:
+      ftp.quit()
+    except ftplib.Error:
       pass
 
     item['data']['files'] = []
-    for fileName in filelist:
-      item['data']['files'].append(fileName)
-      item['steps'][self._id] = True
+    for filename in filelist:
+      item['data']['files'].append(filename)
+    return True
 
-  def _filter(self, item):
+class FTPFilterFilesTask(Task): # pylint: disable=too-few-public-methods
+  """Sets data.filter if FTP contains only junk"""
+  def _process(self, item):
+    junk_list = ['incoming', '..', '.ftpquota', '.', 'pub']
+    files = item['data']['files']
+
     item['data']['filter'] = False
-    if len(item['data']['files']) == 0:
-      item['data']['filter'] = "Empty"
-    elif len(item['data']['files']) < 6:
-      match = 0
-      for f in 'incoming', '..', '.ftpquota', '.', 'pub':
-        if f in item['data']['files']:
-          match += 1
-        if match == len(item['data']['files']):
-          item['data']['filter'] = "EmptyWithSystemDirs"
-    if item['data']['filter'] == False:
-      item['steps'][self._id] = True
 
-  def _run(self, items):
-    for item in items:
-      self._process(item)
-      if self.lcnf.get('filter', False):
-        self._filter(item)
-    return items
+    try:
+      if not files or files[0] == "total 0":
+        item['data']['filter'] = "Empty"
+    except IndexError:
+      pass
+
+    if 0 < len(files) <= len(junk_list): # pylint: disable=C1801
+      match_count = 0
+      for filename in junk_list:
+        if filename in files:
+          match_count += 1
+        if match_count == len(files):
+          item['data']['filter'] = "EmptyWithBloatDirs"
+
+    return True

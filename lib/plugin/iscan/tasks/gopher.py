@@ -1,19 +1,15 @@
+"""
+Basic tasks for Gopher services
+"""
+
 import socket
 
-from Config import cnf
+from lib.exec import Task
 
-from lib.exeq import Task
-
-class GopherFindTask(Task):
-  def __init__(self, id, root):
-    super().__init__(id, root)
-
-  def _run(self, items):
-    for item in items:
-      self._process(item)
-    return items
-
-  def _recv(self, sck):
+class GopherFindTask(Task): # pylint: disable=too-few-public-methods
+  """Tries to connect Gopher service"""
+  @staticmethod
+  def _recv(sck):
     total_data = []
     while True:
       data = sck.recv(2048)
@@ -23,7 +19,6 @@ class GopherFindTask(Task):
     return ''.join(total_data)
 
   def _process(self, item):
-    item['steps'][self._id] = False
     sock = socket.socket()
     sock.settimeout(self.lcnf.get('timeout', 20))
     sock.connect((item['data']['ip'], int(70)))

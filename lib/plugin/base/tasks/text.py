@@ -1,4 +1,4 @@
-from lib.exeq import Task
+from lib.exec import Task
 from jinja2 import Environment, FileSystemLoader
 
 

@@ -1,5 +1,6 @@
-from pymongo import MongoClient
 from time import sleep
+from pymongo import MongoClient
+
 from lib.data import Storage
 
 class MongoStorage(Storage):
@@ -15,7 +16,7 @@ class MongoStorage(Storage):
 
   def count(self):
     return self._coll.count()
-  
+
   def _get(self, block, filter):
     if filter is None:
       filter = {}
@@ -26,12 +27,10 @@ class MongoStorage(Storage):
         item = self._coll.find_one(filter=filter)
         sleep(1)
     return item
-  
-  def _get_many(self, count, block, filter, update=None):
+
+  def _get_many(self, count, block, filter):
     if filter is None:
       filter = {}
-    
-    self._logger.debug("%s, %s", filter, update)
     items = self._coll.find(filter=filter, limit=count)
     return items
 
@@ -41,7 +40,7 @@ class MongoStorage(Storage):
         self._logger.debug('Collection full: %s of %s', self.count(), self.size())
         sleep(1)
     self._coll.insert_one(item)
-  
+
   def _put_many(self, items, block):
     if block and self.size() is not 0:
       while self.count() + len(items) > self.size():
@@ -57,11 +56,10 @@ class MongoStorage(Storage):
   def _update(self, items, update):
     if update:
       filter = {'_id': {'$in': [item['_id'] for item in items]}}
-      self._logger.debug("%s, %s", filter, update)
       self._coll.update_many(filter, update, upsert=True)
     else:
       for item in items:
         self._coll.replace_one({'_id': item['_id']}, item, upsert=True)
-  
+
   def _remove(self, items):
     self._coll.delete_many({'_id': {'$in': [item['_id'] for item in items]}})
